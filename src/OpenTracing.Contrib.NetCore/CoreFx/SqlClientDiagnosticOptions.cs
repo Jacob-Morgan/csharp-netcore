@@ -42,5 +42,15 @@ namespace OpenTracing.Contrib.NetCore.CoreFx
             }
             set => _operationNameResolver = value ?? throw new ArgumentNullException(nameof(OperationNameResolver));
         }
+        
+        /// <summary>
+        /// Allows the modification of the created span to e.g. add further tags.
+        /// </summary>
+        public Action<ISpan, SqlCommand> OnCommand { get; set; }
+        
+        /// <summary>
+        /// Allows the modification of the created span when error occured to e.g. add further tags.
+        /// </summary>
+        public Action<ISpan, Exception, SqlCommand> OnError { get; set; }
     }
 }

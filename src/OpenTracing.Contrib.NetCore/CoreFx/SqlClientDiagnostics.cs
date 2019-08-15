@@ -35,19 +35,23 @@ namespace OpenTracing.Contrib.NetCore.CoreFx
 
                         string operationName = _options.OperationNameResolver(args);
 
-                        Tracer.BuildSpan(operationName)
+                        var scope = Tracer.BuildSpan(operationName)
                             .WithTag(Tags.SpanKind, Tags.SpanKindClient)
                             .WithTag(Tags.Component, _options.ComponentName)
                             .WithTag(Tags.DbInstance, args.Connection.Database)
                             .WithTag(Tags.DbStatement, args.CommandText)
                             .StartActive();
+                        _options.OnCommand?.Invoke(scope.Span, args);
                     }
                     break;
 
                 case "System.Data.SqlClient.WriteCommandError":
                     {
+                        var command = (SqlCommand)_activityCommand_RequestFetcher.Fetch(untypedArg);
                         Exception ex = (Exception)_exception_ExceptionFetcher.Fetch(untypedArg);
-
+                        ISpan span = Tracer.ActiveSpan;
+                        if (span != null)
+                            _options.OnError?.Invoke(span, ex, command);
                         DisposeActiveScope(isScopeRequired: true, exception: ex);
                     }
                     break;

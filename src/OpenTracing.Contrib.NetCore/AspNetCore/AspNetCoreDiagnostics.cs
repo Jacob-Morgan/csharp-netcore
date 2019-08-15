@@ -30,7 +30,7 @@ namespace OpenTracing.Contrib.NetCore.AspNetCore
                 throw new ArgumentNullException(nameof(options));
 
             _hostingEventProcessor = new HostingEventProcessor(Tracer, Logger, options.Value.Hosting);
-            _mvcEventProcessor = new MvcEventProcessor(Tracer, Logger, options.Value.Hosting.IgnorePatterns);
+            _mvcEventProcessor = new MvcEventProcessor(Tracer, Logger, options.Value.Hosting);
         }
 
         protected override bool IsEnabled(string eventName)

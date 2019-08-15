@@ -37,7 +37,7 @@ namespace OpenTracing.Contrib.NetCore.EntityFrameworkCore
 
                         string operationName = _options.OperationNameResolver(args);
 
-                        Tracer.BuildSpan(operationName)
+                        var scope = Tracer.BuildSpan(operationName)
                             .WithTag(Tags.SpanKind, Tags.SpanKindClient)
                             .WithTag(Tags.Component, _options.ComponentName)
                             .WithTag(Tags.DbInstance, args.Command.Connection.Database)
@@ -45,6 +45,7 @@ namespace OpenTracing.Contrib.NetCore.EntityFrameworkCore
                             .WithTag(TagMethod, args.ExecuteMethod.ToString())
                             .WithTag(TagIsAsync, args.IsAsync)
                             .StartActive();
+                        _options.OnCommandExecuting?.Invoke(scope.Span, args);
                     }
                     break;
 
@@ -57,6 +58,9 @@ namespace OpenTracing.Contrib.NetCore.EntityFrameworkCore
                 case "Microsoft.EntityFrameworkCore.Database.Command.CommandError":
                     {
                         CommandErrorEventData args = (CommandErrorEventData)untypedArg;
+                        ISpan span = Tracer.ActiveSpan;
+                        if (span != null)
+                            _options.OnError?.Invoke(span, args.Exception, args);
 
                         // The "CommandExecuted" event is NOT called in case of an exception,
                         // so we have to dispose the scope here as well!

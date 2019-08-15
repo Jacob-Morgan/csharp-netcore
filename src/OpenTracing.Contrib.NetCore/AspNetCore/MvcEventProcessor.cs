@@ -27,11 +27,11 @@ namespace OpenTracing.Contrib.NetCore.AspNetCore
 
         private readonly ITracer _tracer;
         private readonly ILogger _logger;
-        private readonly IList<Func<HttpContext, bool>> _ignorePatterns;
+        private readonly HostingOptions _options;
 
-        public MvcEventProcessor(ITracer tracer, ILogger logger, IList<Func<HttpContext, bool>> ignorePatterns)
+        public MvcEventProcessor(ITracer tracer, ILogger logger, HostingOptions options)
         {
-            _ignorePatterns = ignorePatterns;
+            _options = options;
             _tracer = tracer ?? throw new ArgumentNullException(nameof(tracer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -60,11 +60,12 @@ namespace OpenTracing.Contrib.NetCore.AspNetCore
                             ? $"Action {controllerActionDescriptor.ControllerTypeInfo.FullName}/{controllerActionDescriptor.ActionName}"
                             : $"Action {actionDescriptor.DisplayName}";
 
-                        _tracer.BuildSpan(operationName)
+                        var scope = _tracer.BuildSpan(operationName)
                             .WithTag(Tags.Component, ActionComponent)
                             .WithTag(ActionTagControllerName, controllerActionDescriptor?.ControllerTypeInfo.FullName)
                             .WithTag(ActionTagActionName, controllerActionDescriptor?.ActionName)
                             .StartActive();
+                        _options.OnRequest?.Invoke(scope.Span, httpContext);
                     }
                 }
                     return true;
@@ -93,10 +94,11 @@ namespace OpenTracing.Contrib.NetCore.AspNetCore
                         string resultType = result.GetType().Name;
                         string operationName = $"Result {resultType}";
 
-                        _tracer.BuildSpan(operationName)
+                        var scope = _tracer.BuildSpan(operationName)
                             .WithTag(Tags.Component, ResultComponent)
                             .WithTag(ResultTagType, resultType)
                             .StartActive();
+                        _options.OnRequest?.Invoke(scope.Span, httpContext);
                     }
                 }
                     return true;
@@ -113,7 +115,13 @@ namespace OpenTracing.Contrib.NetCore.AspNetCore
         
         private bool ShouldIgnore(HttpContext httpContext)
         {
-            return _ignorePatterns.Any(ignore => ignore(httpContext));
+            foreach (Func<HttpContext, bool> ignore in _options.IgnorePatterns)
+            {
+                if (ignore(httpContext))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

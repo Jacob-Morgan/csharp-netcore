@@ -36,5 +36,15 @@ namespace OpenTracing.Contrib.NetCore.EntityFrameworkCore
             }
             set => _operationNameResolver = value ?? throw new ArgumentNullException(nameof(OperationNameResolver));
         }
+        
+        /// <summary>
+        /// Allows the modification of the created span to e.g. add further tags.
+        /// </summary>
+        public Action<ISpan, CommandEventData> OnCommandExecuting { get; set; }
+        
+        /// <summary>
+        /// Allows the modification of the created span when error occured to e.g. add further tags.
+        /// </summary>
+        public Action<ISpan, Exception, CommandEventData> OnError { get; set; }
     }
 }
