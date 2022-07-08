@@ -20,7 +20,7 @@ Instrumented components: HttpClient calls, ASP.NET Core, Entity Framework Core a
   <ItemGroup>
     <!-- Instrumented libraries (which are not visible as actual dependencies) -->
     <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" Version="2.0.0" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.0.0" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.0.1" PrivateAssets="All" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.0.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.0.0" PrivateAssets="All" />
   </ItemGroup>
